@@ -265,6 +265,8 @@ function nextPhase() {
   const slide = SLIDES[gameState.currentSlideId];
   if (!slide) return;
 
+  console.log('nextPhase called, current phase:', gameState.scenePhase, 'has factText:', !!slide.factText);
+
   if (gameState.scenePhase === 0) {
     if (slide.factText && slide.factText.trim()) {
       gameState.scenePhase = 1;
