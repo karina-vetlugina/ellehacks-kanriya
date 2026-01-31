@@ -8,8 +8,8 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Fixed top metrics bar (mobile-first) -->
-  <header id="metrics-bar" role="banner">
+  <!-- Fixed top metrics bar (hidden during opening sequence) -->
+  <header id="metrics-bar" class="intro-hidden" role="banner">
     <div class="metric-item" id="balance-metric">
       <span class="metric-label">Account Balance</span>
       <span id="balance-display" class="metric-value">$0</span>
@@ -27,8 +27,8 @@
     </div>
   </header>
 
-  <!-- Info button - knowledge inventory access (below nav bar, left side) -->
-  <button type="button" id="info-icon" class="info-icon" aria-label="View achievements" title="View Tips">i</button>
+  <!-- Info button - hidden during opening sequence -->
+  <button type="button" id="info-icon" class="info-icon intro-hidden" aria-label="View achievements" title="View Tips">i</button>
 
   <!-- Achievement notifications container (top of screen) -->
   <div id="notification-container" class="notification-container" aria-live="polite"></div>
@@ -51,7 +51,7 @@
     <div id="overlay">
       <div id="dialogue-area">
         <p id="dialogue-text">Loading...</p>
-        <button type="button" id="next-phase-btn" class="next-phase-btn" aria-label="Next" title="Next">→</button>
+        <button type="button" id="next-phase-btn" class="next-phase-btn" aria-label="Next" title="Next">➜</button>
       </div>
       <div id="choices-container" class="phase-hidden"></div>
     </div>
@@ -69,6 +69,16 @@
       <p class="modal-rating-legend">300–579 Poor · 580–669 Fair · 670–739 Good · 740–799 Very Good · 800+ Excellent</p>
       <ul id="credit-modal-bullets" class="modal-bullets"></ul>
       <button type="button" id="credit-modal-close" class="modal-close-btn">Close</button>
+    </div>
+  </div>
+
+  <!-- Goal unlocked popup (one-time overlay, not saved to tips) -->
+  <div id="goal-unlocked-popup" class="goal-popup" role="dialog" aria-labelledby="goal-popup-title" aria-modal="true" aria-hidden="true">
+    <div class="goal-popup-backdrop"></div>
+    <div class="goal-popup-card">
+      <h2 id="goal-popup-title" class="goal-popup-title">Goal unlocked</h2>
+      <p id="goal-popup-text" class="goal-popup-text">Buy your first car before starting university</p>
+      <button type="button" id="goal-popup-btn" class="goal-popup-btn">Continue</button>
     </div>
   </div>
 

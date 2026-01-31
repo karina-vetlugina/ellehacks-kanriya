@@ -1,15 +1,79 @@
 /**
  * slides.js - Slide data for POV interactive app
  *
- * Each slide supports: text, choices.
+ * Each slide supports: text, choices, nextSlideId (for dialogue-only slides).
  * Slides may include:
- *   - onEnter(gameState) — run when the slide is shown (e.g. unlock Credit, complete episodes)
+ *   - onEnter(gameState) — run when the slide is shown
  *   - choices[].effect — { type: "addIncome"|"spendMoney"|"transferToSavings", amount }
- *
- * Facts are now unlocked as achievements when episodes are completed.
+ *   - choices[].locked — if true, choice is disabled and not clickable
+ *   - choices[].difficulty — "easy" | "moderate" | "difficult"
  */
 
 const SLIDES = {
+  // --------------------------------------------------
+  // Opening sequence
+  // --------------------------------------------------
+  birthday_cake_lit: {
+    id: "birthday_cake_lit",
+    text: "It's your birthday.\n\nYou're finally 18.",
+    background: "/assets/slides/cake_lit.png",
+    nextSlideId: "eyes_closed",
+    choices: [],
+  },
+
+  eyes_closed: {
+    id: "eyes_closed",
+    text: "You close your eyes.\n\nWhat's your birthday wish?",
+    background: "black",
+    nextSlideId: "birthday_wish_choices",
+    choices: [],
+  },
+
+  birthday_wish_choices: {
+    id: "birthday_wish_choices",
+    text: "You only get one wish.\n\nWhat do you choose?",
+    background: "black",
+    choices: [
+      { label: "A car", nextSlideId: "goal_unlocked", difficulty: "moderate" },
+      { label: "A laptop", locked: true, difficulty: "easy" },
+      { label: "An apartment", locked: true, difficulty: "difficult" },
+    ],
+  },
+
+  goal_unlocked: {
+    id: "goal_unlocked",
+    text: "",
+    background: "black",
+    nextSlideId: "cake_out",
+    choices: [],
+    onEnter: function (gameState) {
+      gameState.carGoalUnlocked = true;
+      gameState.carGoalActive = true;
+      showGoalUnlockedPopup("Goal unlocked", "Buy your first car before starting university", "cake_out");
+    },
+  },
+
+  cake_out: {
+    id: "cake_out",
+    text: "The candles are out.\n\nFrom now on, every decision matters.\n\nYou'll start saving money for your first car.",
+    background: "/assets/slides/cake_out.png",
+    nextSlideId: "first_paycheck",
+    choices: [],
+  },
+
+  first_paycheck: {
+    id: "first_paycheck",
+    text: "Your first paycheck arrives. What do you do?",
+    background: "/assets/slides/bank.png",
+    choices: [
+      { label: "Check the notification immediately", nextSlideId: "check-bank" },
+      { label: "Ignore it and go back to sleep", nextSlideId: "ignore-bank" },
+    ],
+  },
+
+  // --------------------------------------------------
+  // Original game flow (from first_paycheck onward)
+  // --------------------------------------------------
   intro: {
     id: "intro",
     text: "You wake up on a Monday morning. Your phone buzzes with a notification from your bank. What do you do?",

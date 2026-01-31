@@ -13,17 +13,21 @@
    Centralized game state
    -------------------------------------------------- */
 const gameState = {
-  currentSlideId: "intro",
+  currentSlideId: "birthday_cake_lit",
   scenePhase: 0, // 0 = dialogue, 1 = fact, 2 = choices
   accountBalance: 2000,
   totalSaved: 0,
   totalSpent: 0,
   carGoalAmount: 15000,
+  carGoalUnlocked: false,
+  carGoalActive: false,
   hasSeenCarBrowsingScene: false,
   creditScore: 680,
   creditVisible: false,
   completedEpisodes: [], // Track completed episode numbers
 };
+
+const OPENING_SLIDE_IDS = ["birthday_cake_lit", "eyes_closed", "birthday_wish_choices", "goal_unlocked", "cake_out"];
 
 /* --------------------------------------------------
    Achievements system - facts as unlockable rewards
@@ -73,6 +77,7 @@ const DOM = {
   factContent: null,
   factExitBtn: null,
   // Metrics bar
+  metricsBar: null,
   balanceDisplay: null,
   carGoalProgressBar: null,
   carGoalLabel: null,
@@ -90,6 +95,11 @@ const DOM = {
   achievementsList: null,
   achievementsPanelClose: null,
   notificationContainer: null,
+  // Goal unlocked popup (one-time overlay)
+  goalPopup: null,
+  goalPopupTitle: null,
+  goalPopupText: null,
+  goalPopupBtn: null,
 };
 
 /**
@@ -106,6 +116,7 @@ function init() {
   DOM.factContent = document.getElementById("fact-content");
   DOM.factExitBtn = document.getElementById("fact-exit-btn");
 
+  DOM.metricsBar = document.getElementById("metrics-bar");
   DOM.balanceDisplay = document.getElementById("balance-display");
   DOM.carGoalProgressBar = document.getElementById("car-goal-progress-bar");
   DOM.carGoalLabel = document.getElementById("car-goal-label");
@@ -123,6 +134,11 @@ function init() {
   DOM.achievementsList = document.getElementById("achievements-list");
   DOM.achievementsPanelClose = document.getElementById("achievements-panel-close");
   DOM.notificationContainer = document.getElementById("notification-container");
+
+  DOM.goalPopup = document.getElementById("goal-unlocked-popup");
+  DOM.goalPopupTitle = document.getElementById("goal-popup-title");
+  DOM.goalPopupText = document.getElementById("goal-popup-text");
+  DOM.goalPopupBtn = document.getElementById("goal-popup-btn");
 
   if (!SLIDES) {
     console.error("SLIDES data not loaded. Ensure data/slides.js is loaded first.");
@@ -160,6 +176,9 @@ function init() {
     DOM.achievementsPanel.addEventListener("click", (e) => {
       if (e.target === DOM.achievementsPanel) closeAchievementsPanel();
     });
+  }
+  if (DOM.goalPopupBtn) {
+    DOM.goalPopupBtn.addEventListener("click", closeGoalPopup);
   }
 }
 
@@ -419,15 +438,66 @@ function closeCreditModal() {
    Slide rendering — 3-phase scene flow
    -------------------------------------------------- */
 
+/** Pending goal popup close action */
+let _goalPopupNextSlideId = null;
+
 /**
- * Advance to next phase safely. Phase 0 → 1 (if factText) or 2; Phase 1 → 2.
+ * Show goal unlocked popup (one-time overlay, not saved to tips/history).
+ * @param {string} title
+ * @param {string} text
+ * @param {string} nextSlideId - where to go when OK/Continue is clicked
+ */
+function showGoalUnlockedPopup(title, text, nextSlideId) {
+  if (!DOM.goalPopup || !DOM.goalPopupTitle || !DOM.goalPopupText) return;
+
+  _goalPopupNextSlideId = nextSlideId;
+  DOM.goalPopupTitle.textContent = title;
+  DOM.goalPopupText.textContent = text;
+
+  DOM.goalPopup.classList.add("goal-popup-visible");
+  DOM.goalPopup.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+
+  if (DOM.dialogueArea) DOM.dialogueArea.classList.add("phase-hidden");
+  if (DOM.choicesContainer) DOM.choicesContainer.classList.add("phase-hidden");
+  if (DOM.nextPhaseBtn) DOM.nextPhaseBtn.classList.add("phase-hidden");
+}
+
+function closeGoalPopup() {
+  if (!DOM.goalPopup) return;
+
+  DOM.goalPopup.classList.remove("goal-popup-visible");
+  DOM.goalPopup.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+
+  if (DOM.dialogueArea) DOM.dialogueArea.classList.remove("phase-hidden");
+
+  if (_goalPopupNextSlideId) {
+    renderSlide(_goalPopupNextSlideId);
+    _goalPopupNextSlideId = null;
+  }
+}
+
+/**
+ * Advance to next phase safely. Phase 0 → 1 (if factText), 2 (choices), or nextSlideId.
  */
 function nextPhase() {
   const slide = SLIDES[gameState.currentSlideId];
   if (!slide) return;
 
-  // Facts are now achievements, so skip directly to choices
   if (gameState.scenePhase === 0) {
+    if (slide.factText && slide.factText.trim()) {
+      gameState.scenePhase = 1;
+      renderFactPhase();
+    } else if (slide.nextSlideId && (!slide.choices || slide.choices.length === 0)) {
+      renderSlide(slide.nextSlideId);
+    } else {
+      gameState.scenePhase = 2;
+      renderChoicesPhase();
+    }
+    return;
+  }
+  if (gameState.scenePhase === 1) {
     gameState.scenePhase = 2;
     renderChoicesPhase();
   }
@@ -493,13 +563,15 @@ function renderSlide(slideId) {
     updateMetricsBar();
   }
 
-  // Update background
+  // Update background (solid black or image)
   if (DOM.backgroundContainer) {
     const bg = slide.background || "";
-    const isImagePath = bg && (bg.endsWith(".png") || bg.endsWith(".jpg") || bg.endsWith(".webp"));
+    const isBlack = bg === "black";
+    const isImagePath = !isBlack && bg && (bg.endsWith(".png") || bg.endsWith(".jpg") || bg.endsWith(".webp"));
 
-    DOM.backgroundContainer.style.background = "#2a2a2a";
+    DOM.backgroundContainer.style.background = isBlack ? "#000" : "#2a2a2a";
     DOM.backgroundContainer.setAttribute("data-background", bg);
+    DOM.backgroundContainer.classList.toggle("bg-black", isBlack);
 
     let img = DOM.backgroundContainer.querySelector(".slide-bg-img");
     if (isImagePath) {
@@ -521,12 +593,25 @@ function renderSlide(slideId) {
     DOM.dialogueText.textContent = slide.text;
   }
 
-  renderDialoguePhase();
+  if (slide.id === "goal_unlocked") {
+    if (DOM.dialogueArea) DOM.dialogueArea.classList.add("phase-hidden");
+    if (DOM.nextPhaseBtn) DOM.nextPhaseBtn.classList.add("phase-hidden");
+  } else {
+    renderDialoguePhase();
+  }
+
+  updateMetricsBarVisibility();
+}
+
+function updateMetricsBarVisibility() {
+  const isOpening = OPENING_SLIDE_IDS.includes(gameState.currentSlideId);
+  if (DOM.metricsBar) DOM.metricsBar.classList.toggle("intro-hidden", isOpening);
+  if (DOM.infoIcon) DOM.infoIcon.classList.toggle("intro-hidden", isOpening);
 }
 
 /**
- * Render choice buttons. Applies choice.effect via financial functions when present.
- * @param {Array<{label: string, nextSlideId: string, effect?: {type: string, amount: number}}>} choices
+ * Render choice buttons. Supports locked choices with difficulty labels.
+ * @param {Array<{label: string, nextSlideId?: string, locked?: boolean, difficulty?: string, effect?: object}>} choices
  */
 function renderChoices(choices) {
   if (!DOM.choicesContainer) return;
@@ -534,16 +619,32 @@ function renderChoices(choices) {
   DOM.choicesContainer.innerHTML = "";
 
   choices.forEach((choice) => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "choice-wrapper";
+
     const btn = document.createElement("button");
-    btn.className = "choice-btn";
-    btn.textContent = choice.label;
-    btn.dataset.nextSlideId = choice.nextSlideId;
+    btn.className = choice.locked ? "choice-btn choice-btn--locked" : "choice-btn";
+    btn.type = "button";
+    btn.disabled = !!choice.locked;
 
-    btn.addEventListener("click", () => {
-      handleChoiceClick(choice);
-    });
+    const labelSpan = document.createElement("span");
+    labelSpan.className = "choice-label";
+    labelSpan.textContent = choice.label;
+    btn.appendChild(labelSpan);
 
-    DOM.choicesContainer.appendChild(btn);
+    if (choice.difficulty) {
+      const diffSpan = document.createElement("span");
+      diffSpan.className = "choice-difficulty";
+      diffSpan.textContent = choice.difficulty;
+      btn.appendChild(diffSpan);
+    }
+
+    if (!choice.locked && choice.nextSlideId) {
+      btn.addEventListener("click", () => handleChoiceClick(choice));
+    }
+
+    wrapper.appendChild(btn);
+    DOM.choicesContainer.appendChild(wrapper);
   });
 }
 

@@ -3,7 +3,7 @@
    Portrait orientation, PWA-ready structure
    ============================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Parkinsans:wght@400;500;600;700&display=swap');
 
 /* Reset & base */
 * {
@@ -12,11 +12,15 @@
   padding: 0;
 }
 
+html {
+  font-size: 16px;
+}
+
 html, body {
   height: 100%;
   width: 100%;
   overflow: hidden;
-  font-family: 'Pixelify Sans', sans-serif;
+  font-family: 'Parkinsans', sans-serif;
   background: #1a1a1a;
   color: #f5f5f5;
   -webkit-font-smoothing: none;
@@ -27,6 +31,12 @@ html, body {
 /* --------------------------------------------------
    Top metrics bar - fixed, mobile-first
    -------------------------------------------------- */
+#metrics-bar.intro-hidden,
+.info-icon.intro-hidden {
+  display: none !important;
+  visibility: hidden;
+}
+
 #metrics-bar {
   position: fixed;
   top: 0;
@@ -39,7 +49,7 @@ html, body {
   gap: 0.5rem 1rem;
   padding: 0.75rem 1rem;
   padding-top: max(0.75rem, env(safe-area-inset-top));
-  background: rgba(0, 0, 0, 0.85);
+  background: #000;
   border-bottom: 1px solid #333;
 }
 
@@ -61,20 +71,20 @@ html, body {
 }
 
 .metric-label {
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   color: #999;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  font-family: 'Pixelify Sans', sans-serif;
+  font-family: 'Parkinsans', sans-serif;
 }
 
 .metric-value {
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 600;
 }
 
 .metric-value--small {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: #ccc;
 }
@@ -104,7 +114,7 @@ html, body {
 /* Info icon - knowledge inventory button (fixed, below nav bar, left side) */
 .info-icon {
   position: fixed;
-  top: 5rem;
+  top: 5.5rem;
   left: 1rem;
   z-index: 50;
   width: 2.25rem;
@@ -114,7 +124,7 @@ html, body {
   justify-content: center;
   font-size: 1.1rem;
   font-weight: 600;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: inherit;
   font-style: italic;
   background: rgba(40, 40, 40, 0.85);
   border: 1px solid #555;
@@ -225,7 +235,7 @@ html, body {
 }
 
 .fact-overlay .fact-content {
-  font-size: 0.95rem;
+  font-size: 1rem;
   line-height: 1.5;
   color: #e5e5e5;
   margin-bottom: 1rem;
@@ -238,8 +248,8 @@ html, body {
 }
 
 .fact-overlay .fact-btn {
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
+  padding: 0.55rem 1rem;
+  font-size: 0.95rem;
   font-family: inherit;
   border-radius: 6px;
   cursor: pointer;
@@ -258,6 +268,79 @@ html, body {
   background: transparent;
 }
 
+/* Goal unlocked popup - one-time overlay (same style as tip notifications) */
+.goal-popup {
+  position: fixed;
+  inset: 0;
+  z-index: 180;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0.25s, opacity 0.25s ease-out;
+}
+
+.goal-popup.goal-popup-visible {
+  pointer-events: auto;
+  visibility: visible;
+  opacity: 1;
+}
+
+.goal-popup-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.goal-popup-card {
+  position: relative;
+  width: 100%;
+  max-width: 20rem;
+  padding: 1.5rem;
+  background: rgba(45, 125, 70, 0.95);
+  border: 2px solid #3d9d5c;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.goal-popup-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 0.75rem 0;
+}
+
+.goal-popup-text {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #fff;
+  margin: 0 0 1.25rem 0;
+}
+
+.goal-popup-btn {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.25);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.goal-popup-btn:hover,
+.goal-popup-btn:focus {
+  background: rgba(255, 255, 255, 0.35);
+  transform: scale(1.02);
+}
+
 /* Phase visibility: Next button (phase 0 only), choices (phase 2 only) */
 .phase-hidden {
   display: none !important;
@@ -265,27 +348,27 @@ html, body {
 
 .next-phase-btn {
   flex-shrink: 0;
-  width: 2.5rem;
+  min-width: 2.5rem;
   height: 2.5rem;
-  padding: 0;
+  padding: 0 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   line-height: 1;
   font-family: inherit;
-  border: 1px solid #555;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
-  color: #f5f5f5;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #432818;
   cursor: pointer;
-  transition: background 0.2s, transform 0.15s ease;
+  transition: transform 0.15s ease, opacity 0.2s;
 }
 
 .next-phase-btn:hover,
 .next-phase-btn:focus {
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateX(2px);
+  transform: translateX(4px);
+  opacity: 0.8;
 }
 
 /* Dialogue area dimmed when fact overlay is visible */
@@ -332,25 +415,61 @@ html, body {
 #dialogue-text {
   flex: 1;
   margin: 0;
-  font-size: 1rem;
+  font-size: 1.05rem;
   line-height: 1.6;
   color: #432818;
-  font-family: 'Pixelify Sans', sans-serif;
+  white-space: pre-line;
+  font-family: 'Parkinsans', sans-serif;
   -webkit-font-smoothing: none;
   -moz-osx-font-smoothing: unset;
   letter-spacing: 0.02em;
 }
 
-/* Smaller dialogue (choice buttons): tan bg, brown outline (pixelated) */
+/* Choice buttons */
 #choices-container {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
+.choice-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.choice-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+}
+
+.choice-label {
+  display: block;
+}
+
+.choice-difficulty {
+  font-size: 0.75rem;
+  color: rgba(67, 40, 24, 0.7);
+  text-transform: lowercase;
+}
+
+.choice-btn--locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #a08060 !important;
+  border-color: #7a6040 !important;
+  pointer-events: none;
+}
+
+.choice-btn--locked .choice-difficulty {
+  color: rgba(67, 40, 24, 0.5);
+}
+
 .choice-btn {
   padding: 0.75rem 1rem;
-  font-size: 0.95rem;
+  font-size: 1rem;
   background: #d4a373;
   color: #432818;
   border: 2px solid #99582a;
@@ -358,7 +477,7 @@ html, body {
   cursor: pointer;
   transition: background 0.15s, transform 0.05s;
   text-align: left;
-  font-family: 'Pixelify Sans', sans-serif;
+  font-family: 'Parkinsans', sans-serif;
   -webkit-font-smoothing: none;
   -moz-osx-font-smoothing: unset;
   box-shadow:
@@ -435,7 +554,7 @@ html, body {
 }
 
 .modal-score-number {
-  font-size: 1.75rem;
+  font-size: 1.65rem;
   font-weight: 700;
   color: #fff;
 }
@@ -447,7 +566,7 @@ html, body {
 }
 
 .modal-rating-legend {
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   color: #888;
   margin-bottom: 1rem;
   line-height: 1.4;
@@ -456,7 +575,7 @@ html, body {
 .modal-bullets {
   margin: 0 0 1rem 1rem;
   padding: 0;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: #ccc;
   line-height: 1.5;
 }
@@ -468,8 +587,8 @@ html, body {
 .modal-close-btn {
   display: block;
   width: 100%;
-  padding: 0.65rem 1rem;
-  font-size: 0.95rem;
+  padding: 0.7rem 1rem;
+  font-size: 1rem;
   font-family: inherit;
   color: #f5f5f5;
   background: #444;
@@ -507,7 +626,7 @@ html, body {
   border: 1px solid #3d9d5c;
   border-radius: 6px;
   color: #fff;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 500;
   text-align: center;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -555,14 +674,14 @@ html, body {
 }
 
 .achievement-title {
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #f5f5f5;
   margin-bottom: 0.35rem;
 }
 
 .achievement-description {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   line-height: 1.4;
   color: #ccc;
   margin: 0;
