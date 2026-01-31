@@ -27,6 +27,12 @@
     </div>
   </header>
 
+  <!-- Info button - knowledge inventory access (below nav bar, left side) -->
+  <button type="button" id="info-icon" class="info-icon" aria-label="View achievements" title="View Tips">i</button>
+
+  <!-- Achievement notifications container (top of screen) -->
+  <div id="notification-container" class="notification-container" aria-live="polite"></div>
+
   <!-- Main game screen -->
   <main id="game-screen">
     <div id="background-container"></div>
@@ -63,6 +69,16 @@
       <p class="modal-rating-legend">300–579 Poor · 580–669 Fair · 670–739 Good · 740–799 Very Good · 800+ Excellent</p>
       <ul id="credit-modal-bullets" class="modal-bullets"></ul>
       <button type="button" id="credit-modal-close" class="modal-close-btn">Close</button>
+    </div>
+  </div>
+
+  <!-- Achievements panel (knowledge inventory) -->
+  <div id="achievements-panel" class="modal" role="dialog" aria-labelledby="achievements-panel-title" aria-modal="true" aria-hidden="true">
+    <div class="modal-backdrop"></div>
+    <div class="modal-panel achievements-panel-content">
+      <h2 id="achievements-panel-title" class="modal-title">Unlocked Tips</h2>
+      <div id="achievements-list" class="achievements-list"></div>
+      <button type="button" id="achievements-panel-close" class="modal-close-btn">Close</button>
     </div>
   </div>
 

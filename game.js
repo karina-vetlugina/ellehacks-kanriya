@@ -22,7 +22,42 @@ const gameState = {
   hasSeenCarBrowsingScene: false,
   creditScore: 680,
   creditVisible: false,
+  completedEpisodes: [], // Track completed episode numbers
 };
+
+/* --------------------------------------------------
+   Achievements system - facts as unlockable rewards
+   -------------------------------------------------- */
+const ACHIEVEMENTS = [
+  {
+    id: "banking_basics",
+    title: "Banking Basics",
+    description: "Checking your bank regularly helps you avoid overdrafts and spot unexpected charges.",
+    unlocked: false,
+    episodeUnlock: 1,
+  },
+  {
+    id: "subscription_awareness",
+    title: "Subscription Awareness",
+    description: "Recurring subscriptions can add up. Review them every few months to cancel what you don't use.",
+    unlocked: false,
+    episodeUnlock: 1,
+  },
+  {
+    id: "credit_fundamentals",
+    title: "Credit Fundamentals",
+    description: "Your credit score affects loan rates and approval. Keep balances low and pay on time to build good credit.",
+    unlocked: false,
+    episodeUnlock: 2,
+  },
+  {
+    id: "savings_strategy",
+    title: "Savings Strategy",
+    description: "Set specific savings goals and automate transfers to reach them faster. Even small amounts add up over time.",
+    unlocked: false,
+    episodeUnlock: 2,
+  },
+];
 
 /* --------------------------------------------------
    DOM references (cached for performance)
@@ -49,6 +84,12 @@ const DOM = {
   creditModalRating: null,
   creditModalBullets: null,
   creditModalClose: null,
+  // Achievements system
+  infoIcon: null,
+  achievementsPanel: null,
+  achievementsList: null,
+  achievementsPanelClose: null,
+  notificationContainer: null,
 };
 
 /**
@@ -77,6 +118,12 @@ function init() {
   DOM.creditModalBullets = document.getElementById("credit-modal-bullets");
   DOM.creditModalClose = document.getElementById("credit-modal-close");
 
+  DOM.infoIcon = document.getElementById("info-icon");
+  DOM.achievementsPanel = document.getElementById("achievements-panel");
+  DOM.achievementsList = document.getElementById("achievements-list");
+  DOM.achievementsPanelClose = document.getElementById("achievements-panel-close");
+  DOM.notificationContainer = document.getElementById("notification-container");
+
   if (!SLIDES) {
     console.error("SLIDES data not loaded. Ensure data/slides.js is loaded first.");
     if (DOM.dialogueText) DOM.dialogueText.textContent = "Error: Slide data not found.";
@@ -102,6 +149,17 @@ function init() {
   }
   if (DOM.factExitBtn) {
     DOM.factExitBtn.addEventListener("click", nextPhase);
+  }
+  if (DOM.infoIcon) {
+    DOM.infoIcon.addEventListener("click", openAchievementsPanel);
+  }
+  if (DOM.achievementsPanelClose) {
+    DOM.achievementsPanelClose.addEventListener("click", closeAchievementsPanel);
+  }
+  if (DOM.achievementsPanel) {
+    DOM.achievementsPanel.addEventListener("click", (e) => {
+      if (e.target === DOM.achievementsPanel) closeAchievementsPanel();
+    });
   }
 }
 
@@ -230,6 +288,109 @@ function updateMetricsBar() {
 }
 
 /* --------------------------------------------------
+   Achievements system - unlock and notification logic
+   -------------------------------------------------- */
+
+/**
+ * Complete an episode and unlock all associated achievements.
+ * @param {number} episodeNumber - Episode to complete
+ */
+function completeEpisode(episodeNumber) {
+  if (gameState.completedEpisodes.includes(episodeNumber)) {
+    console.log(`Episode ${episodeNumber} already completed`);
+    return;
+  }
+
+  gameState.completedEpisodes.push(episodeNumber);
+  console.log(`Episode ${episodeNumber} completed`);
+
+  const newlyUnlocked = [];
+  ACHIEVEMENTS.forEach((achievement) => {
+    if (achievement.episodeUnlock === episodeNumber && !achievement.unlocked) {
+      achievement.unlocked = true;
+      newlyUnlocked.push(achievement);
+    }
+  });
+
+  newlyUnlocked.forEach((achievement, index) => {
+    setTimeout(() => {
+      showAchievementNotification(achievement);
+    }, index * 500);
+  });
+}
+
+/**
+ * Show a non-blocking notification for a newly unlocked achievement.
+ * Auto-dismisses after 3 seconds.
+ * @param {object} achievement
+ */
+function showAchievementNotification(achievement) {
+  if (!DOM.notificationContainer) return;
+
+  const notification = document.createElement("div");
+  notification.className = "achievement-notification";
+  notification.textContent = `New Tip Unlocked: ${achievement.title}`;
+
+  DOM.notificationContainer.appendChild(notification);
+
+  setTimeout(() => {
+    notification.classList.add("notification-visible");
+  }, 10);
+
+  setTimeout(() => {
+    notification.classList.remove("notification-visible");
+    setTimeout(() => {
+      notification.remove();
+    }, 300);
+  }, 3000);
+}
+
+/**
+ * Open achievements panel showing all unlocked and locked achievements.
+ */
+function openAchievementsPanel() {
+  if (!DOM.achievementsPanel || !DOM.achievementsList) return;
+
+  DOM.achievementsList.innerHTML = "";
+
+  ACHIEVEMENTS.forEach((achievement) => {
+    const item = document.createElement("div");
+    item.className = achievement.unlocked
+      ? "achievement-item achievement-unlocked"
+      : "achievement-item achievement-locked";
+
+    const title = document.createElement("h3");
+    title.className = "achievement-title";
+    title.textContent = achievement.title;
+
+    const description = document.createElement("p");
+    description.className = "achievement-description";
+    description.textContent = achievement.unlocked
+      ? achievement.description
+      : "Locked";
+
+    item.appendChild(title);
+    item.appendChild(description);
+    DOM.achievementsList.appendChild(item);
+  });
+
+  DOM.achievementsPanel.classList.add("modal-open");
+  DOM.achievementsPanel.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+}
+
+/**
+ * Close achievements panel.
+ */
+function closeAchievementsPanel() {
+  if (DOM.achievementsPanel) {
+    DOM.achievementsPanel.classList.remove("modal-open");
+    DOM.achievementsPanel.setAttribute("aria-hidden", "true");
+  }
+  document.body.style.overflow = "";
+}
+
+/* --------------------------------------------------
    Credit modal
    -------------------------------------------------- */
 function openCreditModal() {
@@ -265,19 +426,8 @@ function nextPhase() {
   const slide = SLIDES[gameState.currentSlideId];
   if (!slide) return;
 
-  console.log('nextPhase called, current phase:', gameState.scenePhase, 'has factText:', !!slide.factText);
-
+  // Facts are now achievements, so skip directly to choices
   if (gameState.scenePhase === 0) {
-    if (slide.factText && slide.factText.trim()) {
-      gameState.scenePhase = 1;
-      renderFactPhase();
-    } else {
-      gameState.scenePhase = 2;
-      renderChoicesPhase();
-    }
-    return;
-  }
-  if (gameState.scenePhase === 1) {
     gameState.scenePhase = 2;
     renderChoicesPhase();
   }

@@ -101,6 +101,39 @@ html, body {
   display: none !important;
 }
 
+/* Info icon - knowledge inventory button (fixed, below nav bar, left side) */
+.info-icon {
+  position: fixed;
+  top: 5rem;
+  left: 1rem;
+  z-index: 50;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 600;
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  background: rgba(40, 40, 40, 0.85);
+  border: 1px solid #555;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s, border-color 0.2s;
+  padding: 0;
+  color: #ccc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.info-icon:hover,
+.info-icon:focus {
+  background: rgba(60, 60, 60, 0.95);
+  border-color: #777;
+  color: #fff;
+  transform: scale(1.08);
+}
+
 /* Progress bar - Car Goal */
 .progress-wrap {
   width: 100%;
@@ -449,6 +482,95 @@ html, body {
 .modal-close-btn:hover,
 .modal-close-btn:focus {
   background: #555;
+}
+
+/* --------------------------------------------------
+   Achievement notifications - top of screen
+   -------------------------------------------------- */
+.notification-container {
+  position: fixed;
+  top: 4.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+  width: 90%;
+  max-width: 20rem;
+}
+
+.achievement-notification {
+  padding: 0.75rem 1rem;
+  background: rgba(45, 125, 70, 0.95);
+  border: 1px solid #3d9d5c;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.achievement-notification.notification-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --------------------------------------------------
+   Achievements panel - knowledge inventory
+   -------------------------------------------------- */
+.achievements-panel-content {
+  max-width: 26rem;
+}
+
+.achievements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.achievement-item {
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #444;
+}
+
+.achievement-unlocked {
+  background: rgba(45, 125, 70, 0.15);
+  border-color: #3d9d5c;
+}
+
+.achievement-locked {
+  background: rgba(60, 60, 60, 0.3);
+  border-color: #555;
+  opacity: 0.5;
+}
+
+.achievement-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #f5f5f5;
+  margin-bottom: 0.35rem;
+}
+
+.achievement-description {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: #ccc;
+  margin: 0;
+}
+
+.achievement-locked .achievement-description {
+  font-style: italic;
+  color: #888;
 }
 
 /* --------------------------------------------------
