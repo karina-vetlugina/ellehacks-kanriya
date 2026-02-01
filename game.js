@@ -13,7 +13,7 @@
    Centralized game state
    -------------------------------------------------- */
 const gameState = {
-  currentSlideId: "birthday_cake_lit",
+  currentSlideId: "game_intro",
   scenePhase: 0, // 0 = dialogue, 1 = fact, 2 = choices
   accountBalance: 5550,
   totalSaved: 0,
@@ -26,9 +26,10 @@ const gameState = {
   creditVisible: false,
   completedEpisodes: [], // Track completed episode numbers
   unlockedFacts: [], // Facts unlocked during gameplay (shown in info panel)
+  currentPaycheckAmount: 500,
 };
 
-const OPENING_SLIDE_IDS = ["birthday_cake_lit", "eyes_closed", "birthday_wish_choices", "goal_unlocked", "cake_out", "time_transition"];
+const OPENING_SLIDE_IDS = ["game_intro", "birthday_cake_lit", "eyes_closed", "birthday_wish_choices", "goal_unlocked", "cake_out", "time_transition"];
 
 /* Dialogue typing animation */
 const TYPING_MS_PER_CHAR = 35;
@@ -39,34 +40,6 @@ let currentDialogueFullText = "";
    Achievements system - facts as unlockable rewards
    -------------------------------------------------- */
 const ACHIEVEMENTS = [
-  {
-    id: "banking_basics",
-    title: "Banking Basics",
-    description: "Checking your bank regularly helps you avoid overdrafts and spot unexpected charges.",
-    unlocked: false,
-    episodeUnlock: 1,
-  },
-  {
-    id: "subscription_awareness",
-    title: "Subscription Awareness",
-    description: "Recurring subscriptions can add up. Review them every few months to cancel what you don't use.",
-    unlocked: false,
-    episodeUnlock: 1,
-  },
-  {
-    id: "credit_fundamentals",
-    title: "Credit Fundamentals",
-    description: "Your credit score affects loan rates and approval. Keep balances low and pay on time to build good credit.",
-    unlocked: false,
-    episodeUnlock: 2,
-  },
-  {
-    id: "savings_strategy",
-    title: "Savings Strategy",
-    description: "Set specific savings goals and automate transfers to reach them faster. Even small amounts add up over time.",
-    unlocked: false,
-    episodeUnlock: 2,
-  },
   {
     id: "paying_yourself_first",
     title: "Tip: Pay yourself first",
@@ -92,6 +65,20 @@ const ACHIEVEMENTS = [
     id: "building_credit",
     title: "Tip: Building credit",
     description: "Credit cards help build your credit history when used responsibly. Paying your balance on time improves your credit score over time.",
+    unlocked: false,
+    episodeUnlock: 0,
+  },
+  {
+    id: "paychecks_gross_pay",
+    title: "Tip: Paychecks aren't gross pay",
+    description: "In Ontario, about 10–20% of a typical part-time paycheck may be deducted for taxes and government contributions.",
+    unlocked: false,
+    episodeUnlock: 0,
+  },
+  {
+    id: "payment_plans_add_up",
+    title: "Tip: Payment plans add up",
+    description: "Payment plans lower the upfront cost, but interest often means you pay more than the original price over time.",
     unlocked: false,
     episodeUnlock: 0,
   },
@@ -144,6 +131,10 @@ const DOM = {
   investmentOptionsPopup: null,
   investmentOptionsText: null,
   investmentOptionsExit: null,
+  // Wallet view
+  walletIcon: null,
+  walletView: null,
+  walletBackBtn: null,
 };
 
 /**
@@ -191,6 +182,9 @@ function init() {
   DOM.investmentOptionsPopup = document.getElementById("investment-options-popup");
   DOM.investmentOptionsText = document.getElementById("investment-options-text");
   DOM.investmentOptionsExit = document.getElementById("investment-options-exit");
+  DOM.walletIcon = document.getElementById("wallet-icon");
+  DOM.walletView = document.getElementById("wallet-view");
+  DOM.walletBackBtn = document.getElementById("wallet-back-btn");
 
   if (!SLIDES) {
     console.error("SLIDES data not loaded. Ensure data/slides.js is loaded first.");
@@ -227,6 +221,12 @@ function init() {
   }
   if (DOM.infoIcon) {
     DOM.infoIcon.addEventListener("click", openAchievementsPanel);
+  }
+  if (DOM.walletIcon) {
+    DOM.walletIcon.addEventListener("click", openWalletView);
+  }
+  if (DOM.walletBackBtn) {
+    DOM.walletBackBtn.addEventListener("click", closeWalletView);
   }
   if (DOM.achievementsPanelClose) {
     DOM.achievementsPanelClose.addEventListener("click", closeAchievementsPanel);
@@ -293,6 +293,25 @@ function transferToSavings(amount) {
 }
 
 /**
+ * Spend from savings (e.g. car purchase). Decreases totalSaved, updates car goal UI.
+ * @param {number} amount
+ */
+function spendFromSavings(amount) {
+  if (typeof amount !== "number" || amount < 0) return;
+  const actual = Math.min(amount, gameState.totalSaved);
+  if (actual <= 0) return;
+  gameState.totalSaved = Math.max(0, gameState.totalSaved - amount);
+  recalculateCreditScore();
+  updateMetricsBar();
+  if (DOM.carGoalLabel) {
+    DOM.carGoalLabel.classList.remove("balance-flash-add", "balance-flash-deduct");
+    DOM.carGoalLabel.offsetHeight;
+    DOM.carGoalLabel.classList.add("balance-flash-deduct");
+    setTimeout(() => DOM.carGoalLabel.classList.remove("balance-flash-deduct"), 2000);
+  }
+}
+
+/**
  * Recalculate credit score from state. Clamp 300–850.
  */
 function recalculateCreditScore() {
@@ -343,6 +362,31 @@ function getCreditExplanations() {
     bullets.push("Keep saving and managing spending to maintain or improve your score.");
   }
   return bullets.slice(0, 3);
+}
+
+/* --------------------------------------------------
+   Wallet view (read-only, non-destructive)
+   -------------------------------------------------- */
+function openWalletView() {
+  if (!DOM.walletView) return;
+  // Show different bank account image based on credit card activation
+  const walletBg = DOM.walletView.querySelector(".wallet-view-bg");
+  if (walletBg) {
+    const imgPath = gameState.creditVisible
+      ? "/assets/slides/bank_account_new.png"
+      : "/assets/slides/bank_account_old.png";
+    walletBg.style.backgroundImage = `url("${imgPath}")`;
+  }
+  DOM.walletView.classList.add("wallet-view-open");
+  DOM.walletView.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+}
+
+function closeWalletView() {
+  if (!DOM.walletView) return;
+  DOM.walletView.classList.remove("wallet-view-open");
+  DOM.walletView.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
 }
 
 /* --------------------------------------------------
@@ -740,6 +784,7 @@ function nextPhase() {
  * Phase 0 — Dialogue: show slide.text, Next button; hide fact overlay and choices.
  */
 function renderDialoguePhase() {
+  if (DOM.dialogueArea) DOM.dialogueArea.classList.remove("phase-hidden");
   if (DOM.nextPhaseBtn) DOM.nextPhaseBtn.classList.remove("phase-hidden");
   if (DOM.choicesContainer) DOM.choicesContainer.classList.add("phase-hidden");
   if (DOM.factOverlay) DOM.factOverlay.classList.remove("fact-visible");
@@ -772,6 +817,7 @@ function renderChoicesPhase() {
   const slide = SLIDES[gameState.currentSlideId];
   if (!slide) return;
 
+  if (DOM.choicesContainer) DOM.choicesContainer.classList.remove("intro-start");
   if (DOM.nextPhaseBtn) DOM.nextPhaseBtn.classList.add("phase-hidden");
   if (DOM.factOverlay) DOM.factOverlay.classList.remove("fact-visible");
   if (DOM.dialogueArea) DOM.dialogueArea.classList.remove("overlay-dimmed");
@@ -848,7 +894,16 @@ function renderSlide(slideId) {
     if (DOM.choicesContainer) DOM.choicesContainer.classList.add("phase-hidden");
     if (DOM.nextPhaseBtn) DOM.nextPhaseBtn.classList.add("phase-hidden");
     showInvestmentOptionsPopup(slide.text, slide.nextSlideId || "time_jump_month2");
+  } else if (slide.id === "game_intro") {
+    if (DOM.dialogueArea) DOM.dialogueArea.classList.add("phase-hidden");
+    if (DOM.nextPhaseBtn) DOM.nextPhaseBtn.classList.add("phase-hidden");
+    if (DOM.choicesContainer) {
+      DOM.choicesContainer.classList.remove("phase-hidden");
+      DOM.choicesContainer.classList.add("intro-start");
+    }
+    renderChoices(slide.choices || []);
   } else {
+    if (DOM.choicesContainer) DOM.choicesContainer.classList.remove("intro-start");
     renderDialoguePhase();
   }
 
@@ -859,6 +914,7 @@ function updateMetricsBarVisibility() {
   const isOpening = OPENING_SLIDE_IDS.includes(gameState.currentSlideId);
   if (DOM.metricsBar) DOM.metricsBar.classList.toggle("intro-hidden", isOpening);
   if (DOM.infoIcon) DOM.infoIcon.classList.toggle("intro-hidden", isOpening);
+  if (DOM.walletIcon) DOM.walletIcon.classList.toggle("intro-hidden", isOpening);
 }
 
 /**
@@ -916,6 +972,9 @@ function handleChoiceClick(choice) {
         break;
       case "transferToSavings":
         transferToSavings(effect.amount);
+        break;
+      case "spendFromSavings":
+        spendFromSavings(effect.amount);
         break;
       default:
         break;

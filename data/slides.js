@@ -10,6 +10,18 @@
 
 const SLIDES = {
   // --------------------------------------------------
+  // Game intro
+  // --------------------------------------------------
+  game_intro: {
+    id: "game_intro",
+    text: "",
+    background: "/assets/slides/intro.png",
+    choices: [
+      { label: "Start", nextSlideId: "birthday_cake_lit" },
+    ],
+  },
+
+  // --------------------------------------------------
   // Opening sequence
   // --------------------------------------------------
   birthday_cake_lit: {
@@ -208,7 +220,7 @@ const SLIDES = {
     background: "/assets/slides/parents.png",
     choices: [
       { label: "Apply for a credit card", subtitle: "Go to the bank", nextSlideId: "bank_visit" },
-      { label: "Ignore it for now", nextSlideId: "credit_ignored" },
+      { label: "Ignore it for now", nextSlideId: "check-bank" },
     ],
   },
 
@@ -244,23 +256,123 @@ const SLIDES = {
     id: "credit_education_popup",
     text: "",
     background: "/assets/slides/bank_desk.png",
-    nextSlideId: "after_credit_intro",
+    nextSlideId: "time_jump_months",
     choices: [],
   },
 
-  credit_ignored: {
-    id: "credit_ignored",
-    text: "Coming soon.",
-    background: "/assets/slides/parents.png",
-    nextSlideId: "check-bank",
+  // --------------------------------------------------
+  // Stage 6 — Time jump, graduation, summer job
+  // --------------------------------------------------
+  time_jump_months: {
+    id: "time_jump_months",
+    text: "A few months later…",
+    background: "black",
+    nextSlideId: "graduation_milestone",
+    choices: [],
+    onEnter: function (gameState) {
+      gameState.totalSaved = 9395;
+      gameState.accountBalance = 556;
+    },
+  },
+
+  graduation_milestone: {
+    id: "graduation_milestone",
+    text: "Graduation day arrives.\n\nYou've now saved almost $10,000.\n\nWith university coming up, you decide to work a summer job to earn more money.",
+    background: "/assets/slides/graduation.png",
+    nextSlideId: "summer_job_secured",
     choices: [],
   },
 
-  after_credit_intro: {
-    id: "after_credit_intro",
-    text: "Coming soon.",
-    background: "/assets/slides/bank_desk.png",
-    nextSlideId: "check-bank",
+  summer_job_secured: {
+    id: "summer_job_secured",
+    text: "You get the summer job.\n\nYou're working more hours now.\n\nYour bi-weekly paycheck increases to $1,500.",
+    background: "/assets/slides/summer_job.png",
+    nextSlideId: "summer_paycheck_received",
+    choices: [],
+    onEnter: function (gameState) {
+      gameState.currentPaycheckAmount = 1500;
+    },
+  },
+
+  summer_paycheck_received: {
+    id: "summer_paycheck_received",
+    text: "Your phone buzzes.\n\nPaycheck received: $1,250.",
+    background: "/assets/slides/pay_statement.png",
+    nextSlideId: "tip_taxes",
+    choices: [],
+    onEnter: function (gameState) {
+      addIncome(1250);
+    },
+  },
+
+  // --------------------------------------------------
+  // Stage 7 — Car purchase path
+  // --------------------------------------------------
+  tip_taxes: {
+    id: "tip_taxes",
+    text: "You notice your take-home was less than the gross amount.",
+    background: "/assets/slides/pay_statement.png",
+    nextSlideId: "time_jump_more",
+    choices: [],
+    onEnter: function (gameState) {
+      showFunFactNotification("Paychecks aren't gross pay", "paychecks_gross_pay");
+    },
+  },
+
+  time_jump_more: {
+    id: "time_jump_more",
+    text: "A few more months pass…",
+    background: "black",
+    nextSlideId: "metrics_update_car",
+    choices: [],
+  },
+
+  metrics_update_car: {
+    id: "metrics_update_car",
+    text: "You check your finances.",
+    background: "black",
+    nextSlideId: "car_purchase_decision",
+    choices: [],
+    onEnter: function (gameState) {
+      gameState.accountBalance = 1050;
+      gameState.totalSaved = 15151;
+    },
+  },
+
+  car_purchase_decision: {
+    id: "car_purchase_decision",
+    text: "It's time to buy your first car.\n\nAt the dealership, you're presented with two options that fit your budget:",
+    background: "/assets/slides/car_dealership.png",
+    choices: [
+      { label: "Brand-new car ($8,000 down, $300/mo)", subtitle: "Lower upfront cost, long-term payments", nextSlideId: "tip_payment_plans", effect: { type: "spendFromSavings", amount: 8000 } },
+      { label: "Second-hand car ($10,000 upfront)", subtitle: "Higher upfront cost, no monthly payments", nextSlideId: "tip_payment_plans", effect: { type: "spendFromSavings", amount: 10000 } },
+    ],
+  },
+
+  tip_payment_plans: {
+    id: "tip_payment_plans",
+    text: "You consider the costs over time.",
+    background: "/assets/slides/car_dealership.png",
+    nextSlideId: "end_demo_gate",
+    choices: [],
+    onEnter: function (gameState) {
+      showFunFactNotification("Payment plans add up", "payment_plans_add_up");
+    },
+  },
+
+  end_demo_gate: {
+    id: "end_demo_gate",
+    text: "This is just the beginning.\n\nKeep playing to unlock more about investing, RRSPs, mortgages, and insurance.",
+    background: "black",
+    choices: [
+      { label: "Keep playing", nextSlideId: "to_be_continued" },
+    ],
+  },
+
+  to_be_continued: {
+    id: "to_be_continued",
+    text: "To be continued…",
+    background: "black",
     choices: [],
   },
 

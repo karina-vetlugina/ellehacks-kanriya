@@ -92,6 +92,10 @@ html, body {
   color: #e74c3c;
 }
 
+#car-goal-label.balance-flash-deduct {
+  color: #e74c3c;
+}
+
 .metric-value--small {
   font-size: 0.9rem;
   font-weight: 500;
@@ -151,6 +155,109 @@ html, body {
   border-color: #777;
   color: #fff;
   transform: scale(1.08);
+}
+
+/* Wallet button - directly under info icon */
+.wallet-icon {
+  position: fixed;
+  top: 8.25rem;
+  left: 1rem;
+  z-index: 50;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(40, 40, 40, 0.85);
+  border: 1px solid #555;
+  border-radius: 80%;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s, border-color 0.2s;
+  padding: 0;
+  color: #ccc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.wallet-icon.intro-hidden {
+  display: none !important;
+  visibility: hidden;
+}
+
+.wallet-icon:hover,
+.wallet-icon:focus {
+  background: rgba(60, 60, 60, 0.95);
+  border-color: #777;
+  color: #fff;
+  transform: scale(1.08);
+}
+
+.wallet-icon-svg {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+/* Wallet view overlay */
+.wallet-view {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0.25s, opacity 0.25s ease-out;
+}
+
+.wallet-view.wallet-view-open {
+  pointer-events: auto;
+  visibility: visible;
+  opacity: 1;
+}
+
+.wallet-view-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.wallet-view-content {
+  position: relative;
+  width: 100%;
+  max-width: 24rem;
+  height: 85vh;
+  max-height: 560px;
+  margin: 1rem;
+}
+
+.wallet-view-bg {
+  width: 100%;
+  height: 100%;
+  background: center/contain no-repeat url("/assets/slides/bank_account_new.png");
+  border-radius: 12px;
+}
+
+.wallet-back-btn {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+  background: rgba(45, 125, 70, 0.9);
+  color: #fff;
+  border: 2px solid #3d9d5c;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.wallet-back-btn:hover,
+.wallet-back-btn:focus {
+  background: rgba(61, 157, 92, 0.95);
+  transform: scale(1.02);
 }
 
 /* Progress bar - Car Goal */
@@ -523,6 +630,20 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+#choices-container.intro-start {
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 2rem;
+}
+
+#choices-container.intro-start .choice-btn {
+  min-width: 10rem;
+  padding: 1rem 2rem;
+  font-size: 1.25rem;
+  text-align: center;
+  align-items: center;
 }
 
 .choice-wrapper {
