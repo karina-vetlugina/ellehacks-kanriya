@@ -357,6 +357,72 @@ html, body {
   transform: scale(1.02);
 }
 
+/* Credit education popup - modal overlay, Exit in bottom-right */
+.credit-education-popup {
+  position: fixed;
+  inset: 0;
+  z-index: 180;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0.25s, opacity 0.25s ease-out;
+}
+
+.credit-education-popup.credit-education-visible {
+  pointer-events: auto;
+  visibility: visible;
+  opacity: 1;
+}
+
+.credit-education-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.credit-education-card {
+  position: relative;
+  width: 100%;
+  max-width: 20rem;
+  padding: 1.5rem;
+  background: rgba(45, 125, 70, 0.95);
+  border: 2px solid #3d9d5c;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.credit-education-text {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #fff;
+  margin: 0 0 1.25rem 0;
+  white-space: pre-line;
+}
+
+.credit-education-exit {
+  display: block;
+  margin-left: auto;
+  padding: 0.5rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.25);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.credit-education-exit:hover,
+.credit-education-exit:focus {
+  background: rgba(255, 255, 255, 0.35);
+}
+
 /* Phase visibility: Next button (phase 0 only), choices (phase 2 only) */
 .phase-hidden {
   display: none !important;

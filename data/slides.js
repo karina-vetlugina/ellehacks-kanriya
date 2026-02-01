@@ -184,11 +184,84 @@ const SLIDES = {
     id: "car_budget_explanation",
     text: "You start looking at cars more seriously.\n\nYour estimate for a car is around $10,000.\n\nTo stay financially safe, you decide to save $15,000 before buying - keeping some savings aside.",
     background: "/assets/slides/phone_paycheck.png",
-    nextSlideId: "check-bank",
+    nextSlideId: "later_evening",
     choices: [],
     onEnter: function (gameState) {
       showFunFactNotification("Cars cost more than the sticker price", "car_costs");
     },
+  },
+
+  // --------------------------------------------------
+  // Stage 5 — Credit cards and credit score activation
+  // --------------------------------------------------
+  later_evening: {
+    id: "later_evening",
+    text: "Later this evening…",
+    background: "black",
+    nextSlideId: "parents_advice",
+    choices: [],
+  },
+
+  parents_advice: {
+    id: "parents_advice",
+    text: "Your parents sat you down.\n\nThey tell you it's time to start building credit.\n\nThey suggest getting a credit card.",
+    background: "/assets/slides/parents.png",
+    choices: [
+      { label: "Apply for a credit card", subtitle: "Go to the bank", nextSlideId: "bank_visit" },
+      { label: "Ignore it for now", nextSlideId: "credit_ignored" },
+    ],
+  },
+
+  bank_visit: {
+    id: "bank_visit",
+    text: "You walk into your bank.\n\nYou ask about applying for your first credit card.",
+    background: "/assets/slides/bank.png",
+    nextSlideId: "credit_approval",
+    choices: [],
+  },
+
+  credit_approval: {
+    id: "credit_approval",
+    text: "A representative reviews your application.\n\nAfter a moment, she looks up and smiles.\n\nYou're approved.",
+    background: "/assets/slides/bank_desk.png",
+    nextSlideId: "credit_score_activated",
+    choices: [],
+  },
+
+  credit_score_activated: {
+    id: "credit_score_activated",
+    text: "This is the beginning of your credit history.\n\nYour credit score has officially started.",
+    background: "/assets/slides/bank_desk.png",
+    nextSlideId: "credit_education_popup",
+    choices: [],
+    onEnter: function (gameState) {
+      gameState.creditVisible = true;
+      updateMetricsBar();
+    },
+  },
+
+  credit_education_popup: {
+    id: "credit_education_popup",
+    text: "",
+    background: "/assets/slides/bank_desk.png",
+    nextSlideId: "after_credit_intro",
+    choices: [],
+  },
+
+  credit_ignored: {
+    id: "credit_ignored",
+    text: "Coming soon.",
+    background: "/assets/slides/parents.png",
+    nextSlideId: "check-bank",
+    choices: [],
+  },
+
+  after_credit_intro: {
+    id: "after_credit_intro",
+    text: "Coming soon.",
+    background: "/assets/slides/bank_desk.png",
+    nextSlideId: "check-bank",
+    choices: [],
   },
 
   // --------------------------------------------------

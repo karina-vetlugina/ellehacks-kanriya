@@ -15,7 +15,7 @@
 const gameState = {
   currentSlideId: "birthday_cake_lit",
   scenePhase: 0, // 0 = dialogue, 1 = fact, 2 = choices
-  accountBalance: 5700,
+  accountBalance: 5550,
   totalSaved: 0,
   totalSpent: 0,
   carGoalAmount: 15000,
@@ -72,7 +72,7 @@ const ACHIEVEMENTS = [
   {
     id: "time_in_the_market",
     title: "Tip: Time in the market matters",
-    description: "Investing is a time game. Starting earlier allows compound growth to work in your favor and can significantly increase long-term savings.",
+    description: "Investing is a time game. Starting earlier allows compound growth to work in your favor and can significantly increase long-term savings. Keep in mind that taking money out of a TFSA is not typically recommended, so you should keep some in a savings account for any planned purchases.",
     unlocked: false,
     episodeUnlock: 0,
   },
@@ -80,6 +80,13 @@ const ACHIEVEMENTS = [
     id: "car_costs",
     title: "Tip: Cars cost more than the sticker price",
     description: "Cars come with ongoing costs beyond the purchase price. Insurance, fuel, maintenance, and repairs add up over time and should be planned for.",
+    unlocked: false,
+    episodeUnlock: 0,
+  },
+  {
+    id: "building_credit",
+    title: "Tip: Building credit",
+    description: "Credit cards help build your credit history when used responsibly. Paying your balance on time improves your credit score over time.",
     unlocked: false,
     episodeUnlock: 0,
   },
@@ -124,6 +131,13 @@ const DOM = {
   goalPopupTitle: null,
   goalPopupText: null,
   goalPopupBtn: null,
+  // Credit education popup
+  creditEducationPopup: null,
+  creditEducationExit: null,
+  // Investment options popup (not stored in tips)
+  investmentOptionsPopup: null,
+  investmentOptionsText: null,
+  investmentOptionsExit: null,
 };
 
 /**
@@ -165,6 +179,11 @@ function init() {
   DOM.goalPopupTitle = document.getElementById("goal-popup-title");
   DOM.goalPopupText = document.getElementById("goal-popup-text");
   DOM.goalPopupBtn = document.getElementById("goal-popup-btn");
+  DOM.creditEducationPopup = document.getElementById("credit-education-popup");
+  DOM.creditEducationExit = document.getElementById("credit-education-exit");
+  DOM.investmentOptionsPopup = document.getElementById("investment-options-popup");
+  DOM.investmentOptionsText = document.getElementById("investment-options-text");
+  DOM.investmentOptionsExit = document.getElementById("investment-options-exit");
 
   if (!SLIDES) {
     console.error("SLIDES data not loaded. Ensure data/slides.js is loaded first.");
@@ -205,6 +224,12 @@ function init() {
     DOM.achievementsPanel.addEventListener("click", (e) => {
       if (e.target === DOM.achievementsPanel) closeAchievementsPanel();
     });
+  }
+  if (DOM.creditEducationExit) {
+    DOM.creditEducationExit.addEventListener("click", closeCreditEducationPopup);
+  }
+  if (DOM.investmentOptionsExit) {
+    DOM.investmentOptionsExit.addEventListener("click", closeInvestmentOptionsPopup);
   }
   if (DOM.goalPopupBtn) {
     DOM.goalPopupBtn.addEventListener("click", closeGoalPopup);
@@ -565,6 +590,81 @@ function closeGoalPopup() {
   }
 }
 
+/** Pending credit education popup close action */
+let _creditEducationNextSlideId = null;
+
+/**
+ * Show credit education popup (modal overlay). Unlocks tip in info panel.
+ * @param {string} nextSlideId - where to go when Exit is clicked
+ */
+function showCreditEducationPopup(nextSlideId) {
+  if (!DOM.creditEducationPopup) return;
+
+  unlockFactById("building_credit");
+  _creditEducationNextSlideId = nextSlideId;
+
+  DOM.creditEducationPopup.classList.add("credit-education-visible");
+  DOM.creditEducationPopup.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+
+  if (DOM.dialogueArea) DOM.dialogueArea.classList.add("phase-hidden");
+  if (DOM.choicesContainer) DOM.choicesContainer.classList.add("phase-hidden");
+  if (DOM.nextPhaseBtn) DOM.nextPhaseBtn.classList.add("phase-hidden");
+}
+
+function closeCreditEducationPopup() {
+  if (!DOM.creditEducationPopup) return;
+
+  DOM.creditEducationPopup.classList.remove("credit-education-visible");
+  DOM.creditEducationPopup.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+
+  if (DOM.dialogueArea) DOM.dialogueArea.classList.remove("phase-hidden");
+
+  if (_creditEducationNextSlideId) {
+    renderSlide(_creditEducationNextSlideId);
+    _creditEducationNextSlideId = null;
+  }
+}
+
+/** Pending investment options popup close action */
+let _investmentOptionsNextSlideId = null;
+
+/**
+ * Show investment options popup (modal overlay). Does NOT store in tips.
+ * @param {string} text - popup content
+ * @param {string} nextSlideId - where to go when Exit is clicked
+ */
+function showInvestmentOptionsPopup(text, nextSlideId) {
+  if (!DOM.investmentOptionsPopup || !DOM.investmentOptionsText) return;
+
+  _investmentOptionsNextSlideId = nextSlideId;
+  DOM.investmentOptionsText.textContent = text;
+
+  DOM.investmentOptionsPopup.classList.add("credit-education-visible");
+  DOM.investmentOptionsPopup.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+
+  if (DOM.dialogueArea) DOM.dialogueArea.classList.add("phase-hidden");
+  if (DOM.choicesContainer) DOM.choicesContainer.classList.add("phase-hidden");
+  if (DOM.nextPhaseBtn) DOM.nextPhaseBtn.classList.add("phase-hidden");
+}
+
+function closeInvestmentOptionsPopup() {
+  if (!DOM.investmentOptionsPopup) return;
+
+  DOM.investmentOptionsPopup.classList.remove("credit-education-visible");
+  DOM.investmentOptionsPopup.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+
+  if (DOM.dialogueArea) DOM.dialogueArea.classList.remove("phase-hidden");
+
+  if (_investmentOptionsNextSlideId) {
+    renderSlide(_investmentOptionsNextSlideId);
+    _investmentOptionsNextSlideId = null;
+  }
+}
+
 /**
  * Advance to next phase safely. Phase 0 → 1 (if factText), 2 (choices), or nextSlideId.
  */
@@ -688,6 +788,16 @@ function renderSlide(slideId) {
   if (slide.id === "goal_unlocked") {
     if (DOM.dialogueArea) DOM.dialogueArea.classList.add("phase-hidden");
     if (DOM.nextPhaseBtn) DOM.nextPhaseBtn.classList.add("phase-hidden");
+  } else if (slide.id === "credit_education_popup") {
+    if (DOM.dialogueArea) DOM.dialogueArea.classList.add("phase-hidden");
+    if (DOM.choicesContainer) DOM.choicesContainer.classList.add("phase-hidden");
+    if (DOM.nextPhaseBtn) DOM.nextPhaseBtn.classList.add("phase-hidden");
+    showCreditEducationPopup(slide.nextSlideId || "check-bank");
+  } else if (slide.id === "investment_options") {
+    if (DOM.dialogueArea) DOM.dialogueArea.classList.add("phase-hidden");
+    if (DOM.choicesContainer) DOM.choicesContainer.classList.add("phase-hidden");
+    if (DOM.nextPhaseBtn) DOM.nextPhaseBtn.classList.add("phase-hidden");
+    showInvestmentOptionsPopup(slide.text, slide.nextSlideId || "time_jump_month2");
   } else {
     renderDialoguePhase();
   }
